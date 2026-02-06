@@ -5,6 +5,7 @@
 import sys
 
 # Test commit
+# Another commit here...
 import logging
 logging.basicConfig(
     level = logging.INFO,
