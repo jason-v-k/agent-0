@@ -1,9 +1,10 @@
 # =========================================================
-# House the utility functions here
+# House the utility / helper functions here
 # Let the LLM reason how to utilize them, where, and when
 # =========================================================
 
 import subprocess
+from logger import logger
 
 def run_cmd(cmd: str) -> str:
     """
@@ -22,12 +23,42 @@ def run_cmd(cmd: str) -> str:
         shell=True
     )
 
+    logger.info(f"Executing cmd: {cmd}...")
     return execute.stdout.strip()
+
+
+def clone_repo(github_username: str, github_pat: str) -> str:
+    """
+    Clone the required remote GitHub repository
+    
+    :param github_pat: Token for GitHub v3 API auth.
+    :type github_pat: str
+    """
+
+    # Format for auth embedding: 
+    # git clone https://<username>:<token>@://github.com<owner>/<repo>.git
+    clone_cmd = f"git clone https://{github_username}:{github_pat}@github.ibm.com/code-assistant/wca-codegen-c2j-renovate-preset.git"
+    
+    logger.info("=== Attempting clone operation now ===")
+
+    clone_operation = run_cmd(clone_cmd)
+
+    return clone_operation
+
+
+def create_branch(github_pat: str) -> None:
+    """
+    Create a working / feature branch to stage file commits for a subsequent PR
+    
+    :param github_pat: Token for GitHub v3 API auth.
+    :type github_pat: str
+    """
+    pass
 
 
 def read_file(file_path: str) -> None:
     """
-    Read the current '.pipeline-config.yaml' file (locally) and determine the image currently used
+    Read the current (local) '.pipeline-config.yaml' file and determine the image currently used via simple YAML parsing.
     
     :param file_path: File path to local file
     :type file_input: str

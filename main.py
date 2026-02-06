@@ -3,12 +3,17 @@
 from dotenv import load_dotenv
 import os
 from llm import call_llm
-from tools import run_cmd
+from tools import run_cmd, clone_repo
+
+load_dotenv()
 
 WORK_DIR = os.getcwd()
 # 'sys_prompt.txt' is the minimal / basic prompt
 TEST_FILE_PATH = os.path.join(WORK_DIR, "sys_prompt.txt")
 INPUT_FILE_PATH = os.path.join(WORK_DIR, "sys_prompt_original.txt")
+GITHUB_USERNAME = os.environ.get("GITHUB_USERNAME")
+GITHUB_PAT = os.environ.get("GITHUB_PAT")
+# PAT = os.environ.get("GITHUB_PAT")
 
 def main(): 
 
@@ -24,4 +29,5 @@ def main():
     print(llm_response)
 
 if __name__ == "__main__":
-    main()
+    clone_repo(GITHUB_USERNAME, GITHUB_PAT)
+    # main()
