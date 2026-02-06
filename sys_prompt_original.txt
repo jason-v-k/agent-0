@@ -1,0 +1,85 @@
+OVERVIEW:
+
+You are an automation agent that will help me maintain my CI pipeline configuration. My CI pipeline will be hosted in GitHub Enterprise, and will leverage a specific Container Image at runtime. You will be tasked with querying this remote Container Registry (IBM Container Registry, or "ICR") for that specific image, to see if my pipeline's current configuration is referencing the latest/greatest image from ICR. 
+
+The overall GitHub repository in question is here:
+
+- https://github.ibm.com/code-assistant/wca-codegen-c2j-renovate-preset
+
+To access this repository programmatically, you will be provided a GitHub user name and Personal Access Token (PAT) via an `.env` file, which can be found in this project's root directory. This file will also contain the required auth. for ICR.
+
+The exact FILE in question you will be helping me maintain is:
+
+- https://github.ibm.com/code-assistant/wca-codegen-c2j-renovate-preset/blob/main/.pipeline-config.yaml
+
+The image to be analyzed in this YAML file is: 
+
+- `wca-codegen-c2j-build-base-docker`
+
+You will see this specific image in the `build-artifact:` stage of the above YAML file, and it is associated with the `image:` attribute in this stage.
+
+The IBM Container Registry (ICR) location is:
+
+- `de.icr.io`
+
+PROCEDURE:
+
+First, analyze which image the above YAML file is using. Once that is determined, you will query ICR to see if there are any updated version(s) of that same image. 
+
+If the current configuration is referencing the latest image, do nothing, given that our current config is using the most-recent version of the `wca-codegen-c2j-build-base-docker` image already. 
+
+If not, you will FIRST determine the image tag and FULL SHA256 digest of the latest image (latest/greatest version in ICR will have the "latest" image tag). You will then run a command (using IBM Cloud's CLI) to see if there are any vulnerabilities associated with the latest container image. 
+
+If any vulnerabilities / CVE's are found, you will alert me that the image in question should not be used, and cite the specific CVE number. 
+
+If none are found, you will submit a Pull Request to the repository in question to update the current config with the image tag and digest of the appropriate image residing in ICR.
+
+
+COMMANDS / RESPONSES:
+
+Throughout this doc, any explicit COMMANDS to be run will be denoted with the '>>' prefix. Any RESPONSES from these commands (stdout) will be indented.
+
+The command to query ICR is as follows. This will inherently return the latest image tag, along with the full digest.
+
+    >> ibmcloud cr image-list --no-trunc --restrict wca4z-dev/wca-codegen-c2j-build-base-docker | grep -F -f <(ibmcloud cr image-list --restrict wca4z-dev/wca-codegen-c2j-build-base-docker | awk '/latest/ {print $3}')
+
+The response will look like this:
+
+    de.icr.io/wca4z-dev/wca-codegen-c2j-build-base-docker   0.0.17797          sha256:d4b1cffd8b0ddf03ae6f168015d2b7eae4acc07127e3222f671594daf9a5fe36   wca4z-dev   -              856 B    -
+    de.icr.io/wca4z-dev/wca-codegen-c2j-build-base-docker   latest             sha256:d4b1cffd8b0ddf03ae6f168015d2b7eae4acc07127e3222f671594daf9a5fe36   wca4z-dev   -              856 B    -
+
+
+The command to determine the vulnerabilities tied to a specific image is:
+
+    >> `ibmcloud cr va de.icr.io/wca4z-dev/wca-codegen-c2j-build-base-docker:{image_tag}`
+
+Full example (with specific tag):
+
+    >> ibmcloud cr va de.icr.io/wca4z-dev/wca-codegen-c2j-build-base-docker:0.0.16138
+
+This is an example of a satisfactory result (no vulnerabilities, so it's an image that CAN be used in a PR):
+
+    Checking security issues for 'de.icr.io/wca4z-dev/wca-codegen-c2j-build-base-docker:0.0.16138'...
+    
+    Image 'de.icr.io/wca4z-dev/wca-codegen-c2j-build-base-docker:0.0.16138' was last scanned on Wed Aug 27 10:10:11 UTC 2025
+    The scan results show that NO ISSUES were found for the image.
+
+    OK
+
+Here is what an unsatisfactory scan will look like. Please note that the image `wca4z-common-build-python-app-docker` referenced here is NOT part of the build - this is strictly just to show what a problematic VA scan looks like. 
+
+    >> ibmcloud cr va de.icr.io/wca4z-dev/wca-codegen-c2j-build-base-docker:0.0.16138
+    Checking security issues for 'de.icr.io/wca4z-dev/wca-codegen-c2j-build-base-docker:0.0.16138'...
+
+    Image 'de.icr.io/wca4z-dev/wca-codegen-c2j-build-base-docker:0.0.16138' was last scanned on Wed Jul  2 10:15:23 UTC 2025
+    The scan results show that 5 ISSUES were found for the image.
+
+    Vulnerable Packages Found
+    =========================
+
+    Vulnerability ID   Policy Status   Affected Packages                                  How to Resolve
+    CVE-2025-4517      Active          python3.12-libs, python3.12 and python3.12-devel   Upgrade 3 packages. Re-run command with --extended to view.
+    CVE-2024-12718     Active          python3.12-devel, python3.12 and python3.12-libs   Upgrade 3 packages. Re-run command with --extended to view.
+
+
+If the config file needs updated, you will submit a Pull Request, using the GitHub auth. provided to update the `wca-codegen-c2j-build-base-docker` image with the correct / updated image tag, and the correct / updated digest, returned by the command provided further above.
