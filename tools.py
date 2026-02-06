@@ -23,25 +23,6 @@ def run_cmd(cmd: str) -> str:
     )
 
     return execute.stdout.strip()
- 
-    
-#     # Syntax: node main.js <github_access_token> <github_orgName> <artifactory_token> [<github_repoName>]
-# encryption_script = subprocess.run(
-#     [
-#         "node",
-#         SCRIPT_PATH,
-#         ghe_token,
-#         ORG_NAME,
-#         secret_value,
-#     ],
-
-#     capture_output=True, # capture stdout AND stderr
-#     text=True, # get output as strings instead of bytes.
-#     check=True # raise exception if cmd fails
-# )
-
-# # 'main.js' logs encrypted value to stdout (console.log(encryptedMessage))
-# encrypted_token = encryption_script.stdout.strip()
 
 
 def read_file(file_path: str) -> None:
