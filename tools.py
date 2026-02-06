@@ -31,6 +31,8 @@ def clone_repo(github_username: str, github_pat: str) -> str:
     """
     Clone the required remote GitHub repository
     
+    :param github_username: Username for GitHub v3 API auth.
+    :param github_username: str
     :param github_pat: Token for GitHub v3 API auth.
     :type github_pat: str
     """
