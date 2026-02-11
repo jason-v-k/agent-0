@@ -3,3 +3,6 @@ __pycache__/
 venv/
 *.pyc
 .DS_Store
+
+# Renovate dir.
+wca-codegen-c2j-renovate-preset/
