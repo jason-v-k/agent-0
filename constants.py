@@ -18,3 +18,10 @@ TEST_FILE_PATH = os.path.join(WORK_DIR, "sys_prompt.txt")
 GITHUB_USERNAME = os.environ.get("GITHUB_USERNAME")
 GITHUB_PAT = os.environ.get("GITHUB_PAT")
 
+
+# ==================
+# Container Registry
+# ==================
+ICR_ADDRESS = "de.icr.io"
+ICR_USERNAME = "iamapikey"
+# docker login -u iamapikey -p FEG8h-D8Z-YS2Wrzc3HMZwBCrIZlB1558kN9PYgQwdyE de.icr.io
