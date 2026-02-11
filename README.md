@@ -20,3 +20,4 @@ The overall layout of the project is as follows:
 | `llm.py` | Establish the LLM client and Schema, and define a simple method to make the LLM callable for modularity and testability | 
 | `tools.py` | Contains all helper / utility methods at the agent's disposal, such as executing a given command, or submitting a PR |
 | `main.py` | Main entrypoint of all other source code | 
+| `constants.py` | One single location for all 'global' constants |
