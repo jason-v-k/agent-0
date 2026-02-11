@@ -5,6 +5,12 @@
 
 import subprocess
 from logger import logger
+import yaml
+import os
+
+from constants import (
+    YAML_FILE
+)
 
 def run_cmd(cmd: str) -> str:
     """
@@ -66,7 +72,11 @@ def read_file(file_path: str) -> None:
     :type file_input: str
     """
     
-    # Testing commit with newly-configured github username.
+    with open(YAML_FILE, 'r') as file:
+        # Convert YAML to Dict{}
+        data = yaml.safe_load(file)
+        image_tag = {data["build-artifact"]["image"]}
+        print(f"Image tag here is: {image_tag}")
 
 
 def write_file(file_path: str, contents: str) -> None:
