@@ -61,18 +61,27 @@ def read_file(file_path: str) -> str:
     
     :param file_path: File path to local file in cloned repository
     :type file_input: str
-    :return: Image being employed in the current repo, such as:
+    :return: Image being employed in the current repo
     :rtype: str
     """
     
-    with open(file_path, 'r') as file:
+    try: 
+        with open(file_path, 'r') as file:
 
-        # Convert YAML to Dict{} and drill down to 'build-artifact' -> 'image'
-        data = yaml.safe_load(file)
-        current_image = data["build-artifact"]["image"]
+            logger.info("Attempting to read config file...")
+            logger.info(f"File Path: {file_path}")
+            # Convert YAML to Dict{} and drill down to 'build-artifact' -> 'image'
+            data = yaml.safe_load(file)
+            current_image = data["build-artifact"]["image"]
 
-        print(f"Current image being used is: {current_image}")
-        return current_image
+            if current_image:
+
+                logger.info("Full image and tag/digest found!")
+                logger.info(f"Image being used: {current_image}")
+
+                return current_image
+    except FileNotFoundError as e:
+        logger.error(f"File not found: {e}")
         
 
 def query_icr() -> str:
