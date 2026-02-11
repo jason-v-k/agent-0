@@ -65,7 +65,8 @@ def read_file(file_path: str) -> None:
     :param file_path: File path to local file
     :type file_input: str
     """
-    pass
+    
+    # Testing commit with newly-configured github username.
 
 
 def write_file(file_path: str, contents: str) -> None:
