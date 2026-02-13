@@ -3,12 +3,14 @@
 from dotenv import load_dotenv
 import os
 from llm import call_llm
-from tools import run_cmd, clone_repo, read_file
+from tools import clone_repo, read_file, icr_auth, icr_query
 from constants import(
     TEST_FILE_PATH,
     GITHUB_PAT,
     GITHUB_USERNAME,
-    YAML_FILE
+    YAML_FILE,
+    ICR_USERNAME,
+    ICR_API_KEY
 )
 
 load_dotenv()
@@ -30,5 +32,6 @@ def main():
 if __name__ == "__main__":
     clone_repo(GITHUB_USERNAME, GITHUB_PAT)
     read_file(YAML_FILE)
-
+    icr_auth(ICR_USERNAME, ICR_API_KEY)
+    icr_query()
     # main()

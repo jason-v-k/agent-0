@@ -10,15 +10,20 @@ import os
 
 from constants import(
     ICR_USERNAME,
-    ICR_ADDRESS
+    ICR_ADDRESS,
+    ICR_API_KEY,
+    REPO_NAME,
+    REPO_DIR
 )
 
-def run_cmd(cmd: str) -> str:
+def run_cmd(cmd: str, is_sensitive: bool) -> str:
     """
     Run the provided command for the given task. Utilizes Python's 'subprocess' module
     
     :param cmd: Command to be ran / executed
     :type cmd: str
+    :param is_sensitive: If 'cmd' arg. contains sensitive info
+    :type is_sensitive: bool
     :return: Resulting stdout / sterr from the given cmd
     :rtype: str
     """
@@ -30,9 +35,11 @@ def run_cmd(cmd: str) -> str:
         shell=True
     )
 
-    logger.info(f"Executing cmd: {cmd}...")
-    return execute.stdout.strip()
-
+    if is_sensitive:
+        return execute.stdout.strip()
+    else:
+        logger.info(f"Executing cmd: {cmd}...")
+        return execute.stdout.strip()
 
 def clone_repo(github_username: str, github_pat: str) -> str:
     """
@@ -48,12 +55,16 @@ def clone_repo(github_username: str, github_pat: str) -> str:
     # git clone https://<username>:<token>@://github.com<owner>/<repo>.git
     clone_cmd = f"git clone https://{github_username}:{github_pat}@github.ibm.com/code-assistant/wca-codegen-c2j-renovate-preset.git"
     
-    logger.info("=== Attempting clone operation now ===")
+    logger.info("=== Attempting clone operation ===")
 
-    clone_operation = run_cmd(clone_cmd)
+    clone_operation = run_cmd(clone_cmd, False)
 
-    return clone_operation
-
+    if os.path.exists(REPO_DIR):
+        logger.info(f"Successful clone operation...Confirmed that {REPO_NAME} exists!")
+        return clone_operation
+    else:
+        raise RuntimeError(f"Clone failed for {REPO_NAME}")
+        
 
 def read_file(file_path: str) -> str:
     """
@@ -68,27 +79,43 @@ def read_file(file_path: str) -> str:
     try: 
         with open(file_path, 'r') as file:
 
-            logger.info("Attempting to read config file...")
+            logger.info("=== Attempting YAML file assessment ===")
             logger.info(f"File Path: {file_path}")
+
             # Convert YAML to Dict{} and drill down to 'build-artifact' -> 'image'
             data = yaml.safe_load(file)
             current_image = data["build-artifact"]["image"]
 
             if current_image:
-
                 logger.info("Full image and tag/digest found!")
                 logger.info(f"Image being used: {current_image}")
-
+            else:
+                logger.error("Unable to parse 'image' attribute from 'build-artifact' stage of config YAML file")
                 return current_image
+            
     except FileNotFoundError as e:
         logger.error(f"File not found: {e}")
         
 
-def query_icr() -> str:
+def icr_auth(icr_username: str, icr_api_key: str) -> str:
     # Handle ICR auth. and ICR query here...
     # ibmcloud cr image-list --no-trunc --restrict wca4z-dev/wca-codegen-c2j-build-base-docker | grep -F -f <(ibmcloud cr image-list --restrict wca4z-dev/wca-codegen-c2j-build-base-docker | awk '/latest/ {print $3}')
-    pass
+    logger.info("=== Proceeding with IRC authentication ===")
+    icr_login = f"docker login -u {icr_username} -p {icr_api_key} de.icr.io"
+    auth = run_cmd(icr_login, True)
+    print(auth)
+    # docker login -u iamapikey -p FEG8h-D8Z-YS2Wrzc3HMZwBCrIZlB1558kN9PYgQwdyE de.icr.io
 
+
+def icr_query() -> str:
+    # def run_cmd(cmd: str) -> str:
+    logger.info("=== Attempting query of ICR ===")
+    cmd = "ibmcloud cr image-list --no-trunc --restrict wca4z-dev/wca-codegen-c2j-build-base-docker | grep -F -f <(ibmcloud cr image-list --restrict wca4z-dev/wca-codegen-c2j-build-base-docker | awk '/latest/ {print $3}')"
+    # clone_operation = run_cmd(clone_cmd)
+    # return clone_operation
+    # cmd = "ls -l"
+    test = run_cmd(cmd, False)
+    return test
 
 def write_file(file_path: str, contents: str) -> None:
     """
