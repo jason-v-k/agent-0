@@ -106,7 +106,7 @@ def icr_auth(icr_username: str, icr_api_key: str) -> str:
     icr_login = f"docker login -u {icr_username} -p {icr_api_key} de.icr.io"
     auth = run_cmd(icr_login, True)
     return auth
-    # docker login -u iamapikey -p FEG8h-D8Z-YS2Wrzc3HMZwBCrIZlB1558kN9PYgQwdyE de.icr.io
+    # docker login -u iamapikey -p {API_KEY} de.icr.io
 
 
 def icr_query() -> str:
