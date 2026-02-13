@@ -7,11 +7,9 @@ import subprocess
 from logger import logger
 import yaml
 import os
+import json
 
 from constants import(
-    ICR_USERNAME,
-    ICR_ADDRESS,
-    ICR_API_KEY,
     REPO_NAME,
     REPO_DIR
 )
@@ -32,13 +30,17 @@ def run_cmd(cmd: str, is_sensitive: bool) -> str:
         cmd,
         capture_output=True,
         text=True,
-        shell=True
+        shell=True,
+        # Due to process substitution used in 'ibmcloud cr...' cmd 
+        executable="/bin/bash"
     )
 
     if is_sensitive:
+        logger.info(execute.stdout.strip())
         return execute.stdout.strip()
     else:
         logger.info(f"Executing cmd: {cmd}...")
+        logger.info(execute.stdout.strip())
         return execute.stdout.strip()
 
 def clone_repo(github_username: str, github_pat: str) -> str:
@@ -60,7 +62,7 @@ def clone_repo(github_username: str, github_pat: str) -> str:
     clone_operation = run_cmd(clone_cmd, False)
 
     if os.path.exists(REPO_DIR):
-        logger.info(f"Successful clone operation...Confirmed that {REPO_NAME} exists!")
+        logger.info(f"Successful clone operation...Confirmed that '{REPO_NAME}' exists!")
         return clone_operation
     else:
         raise RuntimeError(f"Clone failed for {REPO_NAME}")
@@ -103,19 +105,23 @@ def icr_auth(icr_username: str, icr_api_key: str) -> str:
     logger.info("=== Proceeding with IRC authentication ===")
     icr_login = f"docker login -u {icr_username} -p {icr_api_key} de.icr.io"
     auth = run_cmd(icr_login, True)
-    print(auth)
+    return auth
     # docker login -u iamapikey -p FEG8h-D8Z-YS2Wrzc3HMZwBCrIZlB1558kN9PYgQwdyE de.icr.io
 
 
 def icr_query() -> str:
     # def run_cmd(cmd: str) -> str:
     logger.info("=== Attempting query of ICR ===")
-    cmd = "ibmcloud cr image-list --no-trunc --restrict wca4z-dev/wca-codegen-c2j-build-base-docker | grep -F -f <(ibmcloud cr image-list --restrict wca4z-dev/wca-codegen-c2j-build-base-docker | awk '/latest/ {print $3}')"
+    cmd = "ibmcloud cr image-list --no-trunc --restrict wca4z-dev/wca-codegen-c2j-build-base-docker --output json | grep -F -f <(ibmcloud cr image-list --restrict wca4z-dev/wca-codegen-c2j-build-base-docker | awk '/latest/ {print $3}')"
+    
+    # ================================================================================
+    # clone_cmd = f"git clone https://{github_username}:{github_pat}@github.ibm.com/code-assistant/wca-codegen-c2j-renovate-preset.git"
     # clone_operation = run_cmd(clone_cmd)
     # return clone_operation
     # cmd = "ls -l"
-    test = run_cmd(cmd, False)
-    return test
+    # ================================================================================
+    query = run_cmd(cmd, False)
+    return query
 
 def write_file(file_path: str, contents: str) -> None:
     """
