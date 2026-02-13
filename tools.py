@@ -114,12 +114,6 @@ def icr_query() -> str:
     logger.info("=== Attempting query of ICR ===")
     cmd = "ibmcloud cr image-list --no-trunc --restrict wca4z-dev/wca-codegen-c2j-build-base-docker --output json | grep -F -f <(ibmcloud cr image-list --restrict wca4z-dev/wca-codegen-c2j-build-base-docker | awk '/latest/ {print $3}')"
     
-    # ================================================================================
-    # clone_cmd = f"git clone https://{github_username}:{github_pat}@github.ibm.com/code-assistant/wca-codegen-c2j-renovate-preset.git"
-    # clone_operation = run_cmd(clone_cmd)
-    # return clone_operation
-    # cmd = "ls -l"
-    # ================================================================================
     query = run_cmd(cmd, False)
     return query
 
