@@ -23,9 +23,10 @@ GITHUB_PAT = os.environ.get("GITHUB_PAT")
 # =========================
 # Container Registry / ICR
 # =========================
-ICR_ADDRESS = "de.icr.io"
+ICR_ENDPOINT= "https://de.icr.io"
 ICR_USERNAME = "iamapikey"
 ICR_API_KEY = os.environ.get("ICR_API_KEY")
+ICR_ACCT_ID = os.environ.get("ICR_ACCT_ID")
 
 # Sample login:
-# docker login -u iamapikey -p FEG8h-D8Z-YS2Wrzc3HMZwBCrIZlB1558kN9PYgQwdyE de.icr.io
+# docker login -u iamapikey -p {AUTH_KEY} de.icr.io

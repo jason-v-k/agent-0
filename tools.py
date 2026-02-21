@@ -8,10 +8,14 @@ from logger import logger
 import yaml
 import os
 import json
+import requests
 
 from constants import(
     REPO_NAME,
-    REPO_DIR
+    REPO_DIR,
+    ICR_ENDPOINT,
+    ICR_API_KEY,
+    ICR_ACCT_ID
 )
 
 def run_cmd(cmd: str, is_sensitive: bool) -> str:
@@ -109,13 +113,112 @@ def icr_auth(icr_username: str, icr_api_key: str) -> str:
     # docker login -u iamapikey -p {API_KEY} de.icr.io
 
 
-def icr_query() -> str:
+def get_bearer_token(api_key: str) -> str:
+    """
+    Get Bearer Token from a valid IBM Cloud API Key
+
+    Args:
+        api_key: A valid IBM Cloud API Key 
+        
+    Returns:
+        str: A current Bearer Token for authenticating to IBM Cloud
+        
+    Raises:
+        requests.RequestException: If the API request fails or response is invalid
+    """
+
+    token_url = 'https://iam.cloud.ibm.com/identity/token'
+    token_headers = {'cache-control': 'nocache',
+                 'content-type': 'application/x-www-form-urlencoded'}
+
+    payload = {
+        'grant_type': 'urn:ibm:params:oauth:grant-type:apikey',
+        'response_type': 'cloud_iam',
+        'apikey': api_key
+    }
+
+    try:
+        response = requests.post(
+            token_url,
+            data = payload,
+            headers = token_headers
+        )
+
+        # Handle non-2xx HTTP responses
+        response.raise_for_status()
+
+        # Parse `access_token` attribute from API response
+        token = response.json().get('access_token')
+        if token:
+            return token
+        else:
+            # No token = unable to proceed, so throw an Exception and terminate.
+            logger.error("[X] - No access token found in API response")
+            debug_log = json.dumps(response.json(), indent=4)
+            logger.debug("Full API response for gathering bearer token: %s", debug_log)
+            raise RuntimeError("Unable to retrieve bearer token from Cloud API Key!")
+
+    # No token = unable to proceed, so throw an Exception and terminate.
+    except requests.RequestException as e:
+        logger.error("[X] - Failed to get Bearer Token from Cloud API Key: %s", e)
+        raise RuntimeError("Unable to retrieve bearer token from Cloud API Key!")
+
+
+def icr_query(api_key: str, acct_id: str) -> str:
     # def run_cmd(cmd: str) -> str:
     logger.info("=== Attempting query of ICR ===")
-    cmd = "ibmcloud cr image-list --no-trunc --restrict wca4z-dev/wca-codegen-c2j-build-base-docker --output json | grep -F -f <(ibmcloud cr image-list --restrict wca4z-dev/wca-codegen-c2j-build-base-docker | awk '/latest/ {print $3}')"
+
+    # Leverage ICR API to query rather than parsing stdout / CLI content
+    # Image: de.icr.io/wca4z-dev/wca-codegen-c2j-build-base-docker
+    token = get_bearer_token(api_key)
+    logger.info("Attempting to generate bearer token!")
+    logger.info(f"Going to use key starting with... {api_key[:5]}")
+    logger.info(f"TOKEN: {token[:50]}")
+
+    # url = f"{ICR_ENDPOINT}/api/v1/images?includeIBM=false&includePrivate=true&includeManifestLists=true&vulnerabilities=true"
+    base_url = f"{ICR_ENDPOINT}/api/v1/images"
+
+    query_params = {
+    "includeIBM": "false",
+    "includePrivate": "true",
+    "includeManifestLists": "true",
+    "vulnerabilities": "false",
+    "namespace": "wca4z-dev",
+    "repository": "wca-codegen-c2j-testing"
+    }   
+
+
     
-    query = run_cmd(cmd, False)
-    return query
+    logger.info(f"Firing off HTTP request to {base_url} now...")
+
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/json",
+        "Account": acct_id,
+
+    }
+
+    
+    response = requests.get(
+        base_url,
+        headers=headers,
+        params=query_params
+    )
+
+    data = response.json()
+
+    logger.info("==================================================================================================")
+    logger.info(f"Status: {response.status_code}")
+    print(json.dumps(data[0], indent=4))
+    logger.info("==================================================================================================")
+
+    
+
+
+    # response.raise_for_status()
+
+    # query = run_cmd(cmd, False)
+    # return query
 
 def write_file(file_path: str, contents: str) -> None:
     """
