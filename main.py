@@ -33,6 +33,6 @@ def main():
 if __name__ == "__main__":
     clone_repo(GITHUB_USERNAME, GITHUB_PAT)
     read_file(YAML_FILE)
-    icr_auth(ICR_USERNAME, ICR_API_KEY)
+    # icr_auth(ICR_USERNAME, ICR_API_KEY)
     icr_query(ICR_API_KEY, ICR_ACCT_ID)
     # main()

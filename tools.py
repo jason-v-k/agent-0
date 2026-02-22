@@ -14,20 +14,19 @@ from constants import(
     REPO_NAME,
     REPO_DIR,
     ICR_ENDPOINT,
-    ICR_API_KEY,
-    ICR_ACCT_ID
+    ICR_REPOSITORY
 )
 
 def run_cmd(cmd: str, is_sensitive: bool) -> str:
     """
-    Run the provided command for the given task. Utilizes Python's 'subprocess' module
-    
-    :param cmd: Command to be ran / executed
-    :type cmd: str
-    :param is_sensitive: If 'cmd' arg. contains sensitive info
-    :type is_sensitive: bool
-    :return: Resulting stdout / sterr from the given cmd
-    :rtype: str
+    Run the provided command for the given task. Utilizes Python's 'subprocess' module.\n
+    Provides stdout only if no sensitive info is returned.
+
+    Args:
+        cmd: Command to be ran / executed
+        is_sensitive: If 'cmd' arg. contains sensitive info
+    Returns:
+        str: stdout resulting from the executed command (provided NO sensitive info is returned.)
     """
 
     execute = subprocess.run(
@@ -50,11 +49,13 @@ def run_cmd(cmd: str, is_sensitive: bool) -> str:
 def clone_repo(github_username: str, github_pat: str) -> str:
     """
     Clone the required remote GitHub repository
+
+    Args:
+        github_username: User name for GitHub v3 API auth.
+        github_pat: Token for GitHub v3 API auth.
     
-    :param github_username: Username for GitHub v3 API auth.
-    :param github_username: str
-    :param github_pat: Token for GitHub v3 API auth.
-    :type github_pat: str
+    Returns:
+        str: stdout resulting from clone operation
     """
 
     # Format for auth embedding: 
@@ -76,10 +77,11 @@ def read_file(file_path: str) -> str:
     """
     Read the current (local) '.pipeline-config.yaml' file and determine the image currently used via simple YAML parsing.
     
-    :param file_path: File path to local file in cloned repository
-    :type file_input: str
-    :return: Image being employed in the current repo
-    :rtype: str
+    Args:
+        file_path: Path to the local '.pipeline-config.yaml' file
+    
+    Returns:
+        str: The image currently being used by the CI Pipeline\n
     """
     
     try: 
@@ -104,13 +106,22 @@ def read_file(file_path: str) -> str:
         
 
 def icr_auth(icr_username: str, icr_api_key: str) -> str:
-    # Handle ICR auth. and ICR query here...
-    # ibmcloud cr image-list --no-trunc --restrict wca4z-dev/wca-codegen-c2j-build-base-docker | grep -F -f <(ibmcloud cr image-list --restrict wca4z-dev/wca-codegen-c2j-build-base-docker | awk '/latest/ {print $3}')
+    """
+    Authenticate to IBM Container Registry
+
+    Args:
+        icr_username: User name for ICR Auth.
+        icr_apikey: API key required for ICR Auth.
+    
+    Returns:
+        str: stdout from the underlying 'docker login...' command
+    """
+    
     logger.info("=== Proceeding with IRC authentication ===")
+    # docker login -u iamapikey -p {API_KEY} de.icr.io
     icr_login = f"docker login -u {icr_username} -p {icr_api_key} de.icr.io"
     auth = run_cmd(icr_login, True)
     return auth
-    # docker login -u iamapikey -p {API_KEY} de.icr.io
 
 
 def get_bearer_token(api_key: str) -> str:
@@ -165,6 +176,18 @@ def get_bearer_token(api_key: str) -> str:
 
 
 def icr_query(api_key: str, acct_id: str) -> str:
+    """
+    Query IBM Container Registry to determine the latest/greatest 'wca-codegen-c2j-build-cpd-docker' image.\n
+    Includes ICR auth. mechanism
+
+    Args:
+        api_key: IBM IAM API Key required for ICR auth.
+        acct_id: Unique ID for the IBM Cloud Account in question
+
+    Returns:
+        str: The latest/greatest 'wca-codegen-c2j-build-cpd-docker' image 
+    
+    """
     # def run_cmd(cmd: str) -> str:
     logger.info("=== Attempting query of ICR ===")
 
@@ -184,21 +207,18 @@ def icr_query(api_key: str, acct_id: str) -> str:
     "includeManifestLists": "true",
     "vulnerabilities": "false",
     "namespace": "wca4z-dev",
-    "repository": "wca-codegen-c2j-testing"
+    "repository": ICR_REPOSITORY
     }   
 
 
-    
     logger.info(f"Firing off HTTP request to {base_url} now...")
 
     headers = {
         "Authorization": f"Bearer {token}",
         "Accept": "application/json",
         "Account": acct_id,
-
     }
 
-    
     response = requests.get(
         base_url,
         headers=headers,
@@ -207,35 +227,25 @@ def icr_query(api_key: str, acct_id: str) -> str:
 
     data = response.json()
 
-    logger.info("==================================================================================================")
-    logger.info(f"Status: {response.status_code}")
-    print(json.dumps(data[0], indent=4))
-    logger.info("==================================================================================================")
+    # latest = [
+    #     img for img in data
+    #     if any("latest" in tag for tag in img.get("RepoTags", []))
+    # ]
 
+    # print("")
+    # print(f"Latest image tag is: {latest}")
+    # print("")
+    logger.info(json.dumps(data[0], indent=4))
     
-
-
-    # response.raise_for_status()
-
-    # query = run_cmd(cmd, False)
-    # return query
 
 def write_file(file_path: str, contents: str) -> None:
     """
     Make changes to the current '.pipeline-config.yaml' file (locally) if necessary
-
-    :param file_path: File path to local file
-    :type file_path: str
-    :param content: Changes to be made
-    :type content: str
     """
 
 def create_branch(github_pat: str) -> None:
     """
     Create a working / feature branch to stage file commits for a subsequent PR
-    
-    :param github_pat: Token for GitHub v3 API auth.
-    :type github_pat: str
     """
     pass
     
@@ -243,13 +253,6 @@ def create_branch(github_pat: str) -> None:
 def create_pr(github_pat: str, branch_name: str, pr_title: str) -> None:
     """
     Create Pull Request in appropriate repo via GitHub's v3 API
-    
-    :param github_pat: Token for GitHub v3 API auth.
-    :type github_pat: str
-    :param branch_name: Feature branch name
-    :type branch_name: str
-    :param pr_title: Title of PR being submitted
-    :type pr_title: str
     """
     pass
 

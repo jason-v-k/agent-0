@@ -27,6 +27,7 @@ ICR_ENDPOINT= "https://de.icr.io"
 ICR_USERNAME = "iamapikey"
 ICR_API_KEY = os.environ.get("ICR_API_KEY")
 ICR_ACCT_ID = os.environ.get("ICR_ACCT_ID")
+ICR_REPOSITORY = os.environ.get("ICR_REPOSITORY")
 
 # Sample login:
 # docker login -u iamapikey -p {AUTH_KEY} de.icr.io
