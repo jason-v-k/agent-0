@@ -1,0 +1,24 @@
+{
+    "Id": "sha256:00534927ca653cf22830a7d39cef3211680d2e576bd6a98d9ca2d7440c04edff",
+    "ParentId": "",
+    "DigestTags": {
+        "sha256:00534927ca653cf22830a7d39cef3211680d2e576bd6a98d9ca2d7440c04edff": [
+            "de.icr.io/wca4z-dev/wca-codegen-c2j-build-cpd-docker:0.0.19806"
+        ]
+    },
+    "RepoTags": [
+        "de.icr.io/wca4z-dev/wca-codegen-c2j-build-cpd-docker:0.0.19806"
+    ],
+    "RepoDigests": [
+        "de.icr.io/wca4z-dev/wca-codegen-c2j-build-cpd-docker@sha256:00534927ca653cf22830a7d39cef3211680d2e576bd6a98d9ca2d7440c04edff"
+    ],
+    "Created": 0,
+    "Size": 857,
+    "VirtualSize": 857,
+    "Labels": null,
+    "VulnerabilityCount": 0,
+    "ConfigurationIssueCount": 0,
+    "IssueCount": 0,
+    "ExemptIssueCount": 0,
+    "ManifestType": "application/vnd.oci.image.index.v1+json"
+}

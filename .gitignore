@@ -6,3 +6,4 @@ venv/
 .idea
 # Renovate dir.
 wca-codegen-c2j-renovate-preset/
+sample_ICR_response.json

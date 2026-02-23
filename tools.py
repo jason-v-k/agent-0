@@ -188,6 +188,7 @@ def icr_query(api_key: str, acct_id: str) -> str:
         str: The latest/greatest 'wca-codegen-c2j-build-cpd-docker' image 
     
     """
+    target_tag = "latest"
     # def run_cmd(cmd: str) -> str:
     logger.info("=== Attempting query of ICR ===")
 
@@ -225,18 +226,18 @@ def icr_query(api_key: str, acct_id: str) -> str:
         params=query_params
     )
 
+    # API returns a list of image objects, NOT a single dict!
     data = response.json()
-
-    # latest = [
-    #     img for img in data
-    #     if any("latest" in tag for tag in img.get("RepoTags", []))
-    # ]
-
-    # print("")
-    # print(f"Latest image tag is: {latest}")
-    # print("")
-    logger.info(json.dumps(data[0], indent=4))
     
+    for image in data:
+        if image["Id"] == "sha256:00984a1911b95c28153cae5801ac4a4ca5ef84a24c0efd11bec2cb4a3327eef7":
+            tag = image["DigestTags"]["sha256:00984a1911b95c28153cae5801ac4a4ca5ef84a24c0efd11bec2cb4a3327eef7"][0]
+
+    print(f"Image tag is: {tag}")
+
+    # logger.info(json.dumps(data[0], indent=4))
+    # print("")
+    # logger.info(json.dumps(data[1], indent=4))
 
 def write_file(file_path: str, contents: str) -> None:
     """
