@@ -97,9 +97,10 @@ def read_file(file_path: str) -> str:
             if current_image:
                 logger.info("Full image and tag/digest found!")
                 logger.info(f"Image being used: {current_image}")
+                return current_image
             else:
                 logger.error("Unable to parse 'image' attribute from 'build-artifact' stage of config YAML file")
-                return current_image
+                
             
     except FileNotFoundError as e:
         logger.error(f"File not found: {e}")
@@ -177,7 +178,7 @@ def get_bearer_token(api_key: str) -> str:
 
 def icr_query(api_key: str, acct_id: str) -> str:
     """
-    Query IBM Container Registry to determine the latest/greatest 'wca-codegen-c2j-build-cpd-docker' image.\n
+    Query IBM Container Registry to determine the latest/greatest 'wca-codegen-c2j-build-base-docker' image.\n
     Includes ICR auth. mechanism
 
     Args:
@@ -185,7 +186,7 @@ def icr_query(api_key: str, acct_id: str) -> str:
         acct_id: Unique ID for the IBM Cloud Account in question
 
     Returns:
-        str: The latest/greatest 'wca-codegen-c2j-build-cpd-docker' image 
+        str: The latest/greatest 'wca-codegen-c2j-build-base-docker' image 
     
     """
     target_tag = "latest"

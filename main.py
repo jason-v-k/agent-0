@@ -37,9 +37,9 @@ if __name__ == "__main__":
     print(f"The image being used by the pipeline currently is: {current_image}")
     print(f"The latest 'wca-codegen-c2j-build-cpd-docker' image in ICR is: {latest_image}")
 
-    # if current_image != latest_image:
-    #     print("Image used by pipeline is NOT the latest")
-    # else:
-    #     print("nothing to do...")
+    if current_image != latest_image:
+        print("Image used by pipeline is NOT the latest")
+    else:
+        print("nothing to do...")
 
     # main()
