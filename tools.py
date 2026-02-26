@@ -197,7 +197,8 @@ def icr_query(api_key: str, acct_id: str) -> str:
     token = get_bearer_token(api_key)
     logger.info("Attempting to generate bearer token!")
     logger.info(f"Going to use key starting with... {api_key[:5]}")
-    logger.info(f"TOKEN: {token[:50]}")
+    # logger.info(f"TOKEN: {token[:50]}")
+    # logger.info(f"Token generated:\n{token}")
 
     # url = f"{ICR_ENDPOINT}/api/v1/images?includeIBM=false&includePrivate=true&includeManifestLists=true&vulnerabilities=true"
     base_url = f"{ICR_ENDPOINT}/api/v1/images"
@@ -229,16 +230,15 @@ def icr_query(api_key: str, acct_id: str) -> str:
     # API returns a list of image objects, NOT a single dict!
     data = response.json()
     
+    # image["RepoTags"] => # <class 'list'>
+    # ":latest" image with have 2 entries in "RepoTags" attribute
     for image in data:
-        if image["Id"] == "sha256:00984a1911b95c28153cae5801ac4a4ca5ef84a24c0efd11bec2cb4a3327eef7":
-            tag = image["DigestTags"]["sha256:00984a1911b95c28153cae5801ac4a4ca5ef84a24c0efd11bec2cb4a3327eef7"][0]
-
-    print(f"Image tag is: {tag}")
-
-    # logger.info(json.dumps(data[0], indent=4))
-    # print("")
-    # logger.info(json.dumps(data[1], indent=4))
-
+        if len(image["RepoTags"]) > 1:
+            for i in image["RepoTags"]:
+                if i.endswith(":latest"):
+                    logger.info(f"Found the following image in ICR with the 'latest' tag: {image["RepoDigests"]}")
+                    return image["RepoDigests"]
+                    
 def write_file(file_path: str, contents: str) -> None:
     """
     Make changes to the current '.pipeline-config.yaml' file (locally) if necessary
