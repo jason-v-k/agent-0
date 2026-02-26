@@ -3,13 +3,12 @@
 from dotenv import load_dotenv
 import os
 from llm import call_llm
-from tools import clone_repo, read_file, icr_auth, icr_query
+from tools import clone_repo, read_file, icr_query
 from constants import(
     TEST_FILE_PATH,
     GITHUB_PAT,
     GITHUB_USERNAME,
     YAML_FILE,
-    ICR_USERNAME,
     ICR_API_KEY,
     ICR_ACCT_ID
 )
@@ -32,7 +31,15 @@ def main():
 
 if __name__ == "__main__":
     clone_repo(GITHUB_USERNAME, GITHUB_PAT)
-    read_file(YAML_FILE)
-    # icr_auth(ICR_USERNAME, ICR_API_KEY)
-    icr_query(ICR_API_KEY, ICR_ACCT_ID)
+    current_image = read_file(YAML_FILE)
+    latest_image = str(icr_query(ICR_API_KEY, ICR_ACCT_ID))
+    
+    print(f"The image being used by the pipeline currently is: {current_image}")
+    print(f"The latest 'wca-codegen-c2j-build-cpd-docker' image in ICR is: {latest_image}")
+
+    # if current_image != latest_image:
+    #     print("Image used by pipeline is NOT the latest")
+    # else:
+    #     print("nothing to do...")
+
     # main()
