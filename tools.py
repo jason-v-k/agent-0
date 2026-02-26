@@ -231,7 +231,7 @@ def icr_query(api_key: str, acct_id: str) -> str:
     data = response.json()
     
     # image["RepoTags"] => # <class 'list'>
-    # ":latest" image with have 2 entries in "RepoTags" attribute
+    # ":latest" image will have 2 entries in "RepoTags" attribute
     for image in data:
         if len(image["RepoTags"]) > 1:
             for i in image["RepoTags"]:
