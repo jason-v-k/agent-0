@@ -12,6 +12,7 @@ from constants import(
     ICR_API_KEY,
     ICR_ACCT_ID
 )
+from logger import logger
 
 load_dotenv()
 
@@ -34,12 +35,15 @@ if __name__ == "__main__":
     current_image = read_file(YAML_FILE)
     latest_image = str(icr_query(ICR_API_KEY, ICR_ACCT_ID))
     
-    print(f"The image being used by the pipeline currently is: {current_image}")
-    print(f"The latest 'wca-codegen-c2j-build-cpd-docker' image in ICR is: {latest_image}")
+    logger.info(f"The image being used by the pipeline currently is: {current_image}")
+    logger.info(f"The latest 'wca-codegen-c2j-build-cpd-docker' image in ICR is: {latest_image}")
 
     if current_image != latest_image:
-        print("Image used by pipeline is NOT the latest")
+        logger.info("Image used by pipeline is NOT the latest. Summary:")
+        logger.info(f"Image in '.pipeline-config.yaml' file: \n\n{current_image}")
+        logger.info(f"Latest 'wca-codegen-c2j-build-cpd-docker' image in ICR: \n\n{latest_image}")
+
     else:
-        print("nothing to do...")
+        logger.info("Image hashes are currently equal. Nothing to do as of now!")
 
     # main()

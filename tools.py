@@ -83,7 +83,8 @@ def read_file(file_path: str) -> str:
     Returns:
         str: The image currently being used by the CI Pipeline\n
     """
-    
+    seperator = "@"
+
     try: 
         with open(file_path, 'r') as file:
 
@@ -93,11 +94,19 @@ def read_file(file_path: str) -> str:
             # Convert YAML to Dict{} and drill down to 'build-artifact' -> 'image'
             data = yaml.safe_load(file)
             current_image = data["build-artifact"]["image"]
-
+            print(current_image)
             if current_image:
                 logger.info("Full image and tag/digest found!")
                 logger.info(f"Image being used: {current_image}")
-                return current_image
+                # Only parse what's after the "@" to compare Hashes
+                # Returns a 3-tuple. Discard the "before" and "middle"
+                _, _, image_sha = current_image.partition(seperator)
+                if image_sha:
+                    logger.info("Successfully parsed CI Pipeline YAML!")
+                    logger.info(f"Current Image SHA is: '{image_sha}'")
+                    return image_sha
+                else:
+                    logger.debug("Failed to parse config YAML file.")
             else:
                 logger.error("Unable to parse 'image' attribute from 'build-artifact' stage of config YAML file")
                 
@@ -178,15 +187,15 @@ def get_bearer_token(api_key: str) -> str:
 
 def icr_query(api_key: str, acct_id: str) -> str:
     """
-    Query IBM Container Registry to determine the latest/greatest 'wca-codegen-c2j-build-base-docker' image.\n
-    Includes ICR auth. mechanism
+    Query IBM Container Registry (includes auth.) to determine the latest/greatest 'wca-codegen-c2j-build-base-docker' image.\n
+    
 
     Args:
         api_key: IBM IAM API Key required for ICR auth.
         acct_id: Unique ID for the IBM Cloud Account in question
 
     Returns:
-        str: The latest/greatest 'wca-codegen-c2j-build-base-docker' image 
+        str: The 'sha256' Hash of the latest/greatest 'wca-codegen-c2j-build-base-docker' image 
     
     """
     target_tag = "latest"
@@ -238,7 +247,7 @@ def icr_query(api_key: str, acct_id: str) -> str:
             for i in image["RepoTags"]:
                 if i.endswith(":latest"):
                     logger.info(f"Found the following image in ICR with the 'latest' tag: {image["RepoDigests"]}")
-                    return image["RepoDigests"]
+                    return image["Id"]
                     
 def write_file(file_path: str, contents: str) -> None:
     """
