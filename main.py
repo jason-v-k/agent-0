@@ -32,18 +32,16 @@ def main():
 
 if __name__ == "__main__":
     clone_repo(GITHUB_USERNAME, GITHUB_PAT)
-    current_image = read_file(YAML_FILE)
-    latest_image = str(icr_query(ICR_API_KEY, ICR_ACCT_ID))
-    
-    logger.info(f"The image being used by the pipeline currently is: {current_image}")
-    logger.info(f"The latest 'wca-codegen-c2j-build-cpd-docker' image in ICR is: {latest_image}")
+    current_digest = read_file(YAML_FILE)
+    latest_tag, latest_digest = icr_query(ICR_API_KEY, ICR_ACCT_ID)
+    logger.info(f"The image being used by the pipeline currently is: {current_digest}")
+    logger.info(f"The latest 'wca-codegen-c2j-build-base-docker' image in ICR is: {latest_digest}")
 
-    if current_image != latest_image:
-        logger.info("Image used by pipeline is NOT the latest. Summary:")
-        logger.info(f"Image in '.pipeline-config.yaml' file: \n\n{current_image}")
-        logger.info(f"Latest 'wca-codegen-c2j-build-cpd-docker' image in ICR: \n\n{latest_image}")
-
+    if current_digest != latest_digest:
+        logger.info("Image used by pipeline is NOT the latest! Submitting PR as needed...")
     else:
         logger.info("Image hashes are currently equal. Nothing to do as of now!")
 
+    # de.icr.io/wca4z-dev/wca-codegen-c2j-build-base-docker:{tag}@sha256:{digest}
+    # submit_pr(latest_tag, latest_digest)
     # main()
